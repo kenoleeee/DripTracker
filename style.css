@@ -7,14 +7,105 @@
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: #0a0a0b;
-    background-image:
-        radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.08) 0%, transparent 50%),
-        radial-gradient(circle at 40% 40%, rgba(120, 200, 255, 0.05) 0%, transparent 50%);
+    background: linear-gradient(-45deg, #0a0a0b, #1a1a1c, #16161a, #0e0e12);
+    background-size: 400% 400%;
+    animation: floatingGradient 15s ease infinite;
     min-height: 100vh;
     color: #e8e8ea;
     overflow-x: hidden;
+    position: relative;
+}
+
+/* Анимация плавающего градиента */
+@keyframes floatingGradient {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* Плавающие световые орбы */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+        radial-gradient(circle at 20% 80%, rgba(167, 139, 250, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.12) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(34, 197, 94, 0.1) 0%, transparent 50%);
+    animation: floatingOrbs 20s ease-in-out infinite;
+    pointer-events: none;
+    z-index: -1;
+}
+
+@keyframes floatingOrbs {
+
+    0%,
+    100% {
+        transform: translate(0px, 0px) rotate(0deg);
+        opacity: 0.8;
+    }
+
+    33% {
+        transform: translate(30px, -30px) rotate(120deg);
+        opacity: 1;
+    }
+
+    66% {
+        transform: translate(-20px, 20px) rotate(240deg);
+        opacity: 0.6;
+    }
+}
+
+/* Дополнительные плавающие частицы */
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+        radial-gradient(circle at 60% 10%, rgba(236, 72, 153, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 10% 60%, rgba(139, 92, 246, 0.06) 0%, transparent 40%),
+        radial-gradient(circle at 90% 90%, rgba(6, 182, 212, 0.05) 0%, transparent 40%);
+    animation: floatingParticles 25s ease-in-out infinite reverse;
+    pointer-events: none;
+    z-index: -1;
+}
+
+@keyframes floatingParticles {
+
+    0%,
+    100% {
+        transform: translate(0px, 0px) scale(1);
+        opacity: 0.5;
+    }
+
+    25% {
+        transform: translate(-15px, 15px) scale(1.1);
+        opacity: 0.8;
+    }
+
+    50% {
+        transform: translate(10px, -25px) scale(0.9);
+        opacity: 0.6;
+    }
+
+    75% {
+        transform: translate(25px, 10px) scale(1.05);
+        opacity: 0.7;
+    }
 }
 
 .container {
