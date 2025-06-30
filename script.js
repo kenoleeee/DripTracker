@@ -747,7 +747,7 @@ class DripTracker {
                 </div>
                 <div class="shared-stats">
                     <div class="shared-stat">
-                        <span class="emoji">💦</span>
+                        <span class="emoji">📅</span>
                         <span class="value">${this.calculateSharedActiveDays(shareData.sessions)}</span>
                         <span class="label">Активных дней</span>
                     </div>
@@ -757,15 +757,22 @@ class DripTracker {
                         <span class="label">Текущая серия</span>
                     </div>
                     <div class="shared-stat">
-                        <span class="emoji">📊</span>
+                        <span class="emoji">💦</span>
                         <span class="value">${this.calculateSharedTotalSessions(shareData.sessions)}</span>
                         <span class="label">Всего сессий</span>
                     </div>
                 </div>
-                <div class="shared-calendar" id="sharedCalendar"></div>
+                <div class="shared-calendar">
+                    <div class="shared-calendar-header">
+                        <button class="shared-nav-btn" id="sharedPrevMonth">‹</button>
+                        <h3 class="shared-month-year" id="sharedMonthYear"></h3>
+                        <button class="shared-nav-btn" id="sharedNextMonth">›</button>
+                    </div>
+                    <div class="shared-calendar-grid" id="sharedCalendarGrid"></div>
+                </div>
                 <div class="shared-footer">
                     <button class="btn-primary" onclick="window.location.href = window.location.pathname">
-                        Создать свой календарь
+                        🚀 Создать свой календарь
                     </button>
                 </div>
             </div>
@@ -773,13 +780,28 @@ class DripTracker {
 
         document.body.appendChild(overlay);
 
+        // Initialize shared calendar with current date
+        this.sharedCurrentDate = new Date();
+        this.sharedSessions = shareData.sessions;
+
         // Close button
         overlay.querySelector('.close-shared').addEventListener('click', () => {
             overlay.remove();
         });
 
-        // Render shared calendar
-        this.renderSharedCalendar(shareData.sessions, 'sharedCalendar');
+        // Navigation buttons
+        overlay.querySelector('#sharedPrevMonth').addEventListener('click', () => {
+            this.sharedCurrentDate.setMonth(this.sharedCurrentDate.getMonth() - 1);
+            this.renderSharedCalendar();
+        });
+
+        overlay.querySelector('#sharedNextMonth').addEventListener('click', () => {
+            this.sharedCurrentDate.setMonth(this.sharedCurrentDate.getMonth() + 1);
+            this.renderSharedCalendar();
+        });
+
+        // Render initial calendar
+        this.renderSharedCalendar();
     }
 
     calculateSharedStreak(sessions) {
@@ -817,114 +839,93 @@ class DripTracker {
         return total;
     }
 
-    renderSharedCalendar(sessions, containerId) {
-        // Similar to renderCalendar but read-only and for shared data
-        const container = document.getElementById(containerId);
-        const currentDate = new Date();
+    renderSharedCalendar() {
+        const calendarGrid = document.getElementById('sharedCalendarGrid');
+        const monthYear = document.getElementById('sharedMonthYear');
 
-        // This is a simplified version - you could make it more sophisticated
-        container.innerHTML = '<p>🔍 Просмотр общего календаря (функция в разработке)</p>';
+        if (!calendarGrid || !monthYear) return;
+
+        const year = this.sharedCurrentDate.getFullYear();
+        const month = this.sharedCurrentDate.getMonth();
+
+        // Set month/year header
+        const monthNames = [
+            'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+            'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
+        ];
+        monthYear.textContent = `${monthNames[month]} ${year}`;
+
+        // Clear calendar
+        calendarGrid.innerHTML = '';
+
+        // Add day headers
+        const dayHeaders = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+        dayHeaders.forEach(day => {
+            const header = document.createElement('div');
+            header.className = 'shared-day-header';
+            header.textContent = day;
+            calendarGrid.appendChild(header);
+        });
+
+        // Calculate first day and number of days
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const daysInMonth = lastDay.getDate();
+
+        // Get first Monday
+        let startDate = new Date(firstDay);
+        const dayOfWeek = firstDay.getDay();
+        const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+        startDate.setDate(firstDay.getDate() - daysToSubtract);
+
+        // Generate calendar days
+        const today = new Date();
+        const todayString = this.formatDate(today);
+
+        for (let i = 0; i < 42; i++) {
+            const cellDate = new Date(startDate);
+            cellDate.setDate(startDate.getDate() + i);
+
+            const dateString = this.formatDate(cellDate);
+            const dayNumber = cellDate.getDate();
+            const isCurrentMonth = cellDate.getMonth() === month;
+            const isToday = dateString === todayString;
+
+            const dayCell = document.createElement('div');
+            dayCell.className = 'shared-day-cell';
+            dayCell.textContent = dayNumber;
+
+            // Add classes based on conditions
+            if (!isCurrentMonth) {
+                dayCell.classList.add('other-month');
+            }
+
+            if (isToday) {
+                dayCell.classList.add('today');
+            }
+
+            // Check for sessions
+            const sessionsForDay = this.sharedSessions[dateString];
+            if (sessionsForDay && sessionsForDay.length > 0) {
+                const dominantType = this.getDominantSessionType(sessionsForDay);
+                const sessionTypes = this.getSessionTypes();
+
+                if (sessionTypes[dominantType]) {
+                    dayCell.classList.add(sessionTypes[dominantType].color);
+                }
+
+                // Add indicator for multiple sessions
+                if (sessionsForDay.length > 1) {
+                    dayCell.classList.add('session-multiple');
+                }
+            }
+
+            calendarGrid.appendChild(dayCell);
+        }
     }
 }
 
-// CSS for shared calendar overlay
-const sharedStyles = `
-<style>
-.shared-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000;
-    backdrop-filter: blur(10px);
-}
 
-.shared-modal {
-    background: white;
-    border-radius: 20px;
-    width: 90%;
-    max-width: 600px;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-}
-
-.shared-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 25px 30px;
-    border-bottom: 1px solid #eee;
-}
-
-.shared-stats {
-    display: flex;
-    gap: 15px;
-    padding: 20px 30px;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.shared-stat {
-    text-align: center;
-    flex: 1;
-}
-
-.shared-stat .emoji {
-    font-size: 2rem;
-    display: block;
-    margin-bottom: 10px;
-}
-
-.shared-stat .value {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #4c51bf;
-    display: block;
-}
-
-.shared-stat .label {
-    font-size: 0.9rem;
-    color: #666;
-}
-
-.shared-calendar {
-    padding: 20px 30px;
-    text-align: center;
-}
-
-.shared-footer {
-    padding: 25px 30px;
-    border-top: 1px solid #eee;
-    text-align: center;
-}
-
-.close-shared {
-    width: 35px;
-    height: 35px;
-    border: none;
-    background: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    border-radius: 50%;
-    transition: all 0.3s ease;
-    color: #666;
-}
-
-.close-shared:hover {
-    background: #f5f5f5;
-    color: #333;
-}
-</style>
-`;
-
-// Add shared styles to head
-document.head.insertAdjacentHTML('beforeend', sharedStyles);
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
