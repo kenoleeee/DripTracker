@@ -619,6 +619,13 @@ class DripTracker {
         const modal = document.getElementById('shareModal');
         modal.classList.add('active');
         modal.dispatchEvent(new Event('show'));
+
+        // Показать подсказку о публичности
+        if (!this.settings.isPublic) {
+            setTimeout(() => {
+                this.showMessage('💡 Включи "Публичный календарь" в настройках для отображения имени', 'success');
+            }, 500);
+        }
     }
 
     closeModal(modalId) {
@@ -665,14 +672,27 @@ class DripTracker {
     }
 
     generateShareLink() {
+        // Дополнительная отладка
+        console.log('📊 Генерация ссылки:', {
+            sessions: Object.keys(this.sessions).length,
+            isPublic: this.settings.isPublic,
+            username: this.settings.username
+        });
+
         const data = {
             sessions: this.sessions,
             username: this.settings.isPublic ? this.settings.username : '',
             timestamp: new Date().toISOString()
         };
 
+        console.log('📊 Данные для ссылки:', data);
+
         const encoded = btoa(JSON.stringify(data));
-        return `${window.location.origin}${window.location.pathname}?share=${encoded}`;
+        const shareUrl = `${window.location.origin}${window.location.pathname}?share=${encoded}`;
+
+        console.log('📊 Готовая ссылка:', shareUrl);
+
+        return shareUrl;
     }
 
     copyShareLink() {
@@ -725,13 +745,27 @@ class DripTracker {
         const urlParams = new URLSearchParams(window.location.search);
         const shareData = urlParams.get('share');
 
+        console.log('🔗 Проверка ссылки:', {
+            url: window.location.href,
+            hasShareParam: !!shareData,
+            shareParam: shareData ? shareData.substring(0, 50) + '...' : null
+        });
+
         if (shareData) {
             try {
                 const decoded = JSON.parse(atob(shareData));
+                console.log('🔗 Декодированные данные:', {
+                    sessionsCount: Object.keys(decoded.sessions || {}).length,
+                    username: decoded.username,
+                    timestamp: decoded.timestamp
+                });
                 this.displaySharedCalendar(decoded);
             } catch (error) {
+                console.error('🔗 Ошибка декодирования:', error);
                 this.showMessage('❌ Некорректная ссылка', 'error');
             }
+        } else {
+            console.log('🔗 Параметр share не найден в URL');
         }
     }
 
@@ -938,6 +972,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Make app globally accessible for debugging
     window.dripTracker = app;
+
+    // Debug functions for testing
+    window.testShare = () => {
+        console.log('🧪 Тестирование публичного календаря...');
+        console.log('📊 Текущие настройки:', app.settings);
+        console.log('📅 Количество сессий:', Object.keys(app.sessions).length);
+
+        if (Object.keys(app.sessions).length === 0) {
+            console.log('⚠️ Нет сессий для демонстрации. Добавь несколько сессий сначала!');
+            app.showMessage('⚠️ Сначала добавь несколько сессий!', 'error');
+            return;
+        }
+
+        const testUrl = app.generateShareLink();
+        console.log('🔗 Тестовая ссылка:', testUrl);
+
+        // Открыть ссылку в новой вкладке для тестирования
+        const newTab = window.open(testUrl, '_blank');
+        if (newTab) {
+            app.showMessage('🚀 Ссылка открыта в новой вкладке', 'success');
+        } else {
+            app.showMessage('❌ Заблокировано браузером', 'error');
+        }
+    };
+
+    console.log('🧪 Для тестирования введи в консоли: testShare()');
 });
 
 // Service Worker registration for PWA capabilities (optional)
