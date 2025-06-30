@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🗓️ DripTracker — Твой откровенный календарь</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <h1>🗓️ DripTracker</h1>
+                <p class="tagline">Первый откровенный календарь твоих «побед» 💦</p>
+            </div>
+            <div class="user-section">
+                <div class="username-display" id="usernameDisplay">Анонимно 🙈</div>
+                <button class="settings-btn" id="settingsBtn">⚙️</button>
+            </div>
+        </header>
+
+        <!-- Stats Section -->
+        <section class="stats-section">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">🔥</div>
+                    <div class="stat-value" id="currentStreak">0</div>
+                    <div class="stat-label">Текущая серия</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📅</div>
+                    <div class="stat-value" id="monthlyCount">0</div>
+                    <div class="stat-label">За месяц</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">💦</div>
+                    <div class="stat-value" id="totalCount">0</div>
+                    <div class="stat-label">Всего побед</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⏰</div>
+                    <div class="stat-value" id="lastSession">-</div>
+                    <div class="stat-label">Последняя</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Calendar Section -->
+        <section class="calendar-section">
+            <div class="calendar-header">
+                <button class="nav-btn" id="prevMonth">‹</button>
+                <h2 class="month-year" id="monthYear"></h2>
+                <button class="nav-btn" id="nextMonth">›</button>
+            </div>
+            <div class="calendar-hint">
+                💡 Кликай только по сегодняшнему дню для добавления сессий
+            </div>
+            <div class="calendar-grid" id="calendarGrid"></div>
+        </section>
+
+        <!-- Quick Actions -->
+        <section class="quick-actions">
+            <button class="action-btn primary" id="addSessionBtn">
+                💦 Добавить сессию на сегодня
+            </button>
+            <button class="action-btn secondary" id="shareBtn">
+                🔗 Поделиться календарем
+            </button>
+        </section>
+
+        <!-- Motivation Section -->
+        <section class="motivation-section">
+            <div class="motivation-card" id="motivationCard">
+                <div class="motivation-emoji">🎯</div>
+                <div class="motivation-text">
+                    <h3>Держись, воин!</h3>
+                    <p>Каждый день без побед — это победа над собой</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Настройки</h2>
+                <button class="close-btn" id="closeSettings">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-group">
+                    <label for="usernameInput">Никнейм (или оставь пустым для анонимности)</label>
+                    <input type="text" id="usernameInput" placeholder="Введи свой никнейм...">
+                </div>
+                <div class="setting-group">
+                    <label>
+                        <input type="checkbox" id="publicCalendar">
+                        Публичный календарь (друзья могут видеть)
+                    </label>
+                </div>
+                <div class="setting-group">
+                    <label for="goalDays">Цель: дней без побед</label>
+                    <input type="number" id="goalDays" min="1" max="365" value="7">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="clearDataBtn">🗑️ Очистить данные</button>
+                <button class="btn-primary" id="saveSettingsBtn">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div class="modal" id="shareModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Поделиться календарем</h2>
+                <button class="close-btn" id="closeShare">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="share-link">
+                    <input type="text" id="shareLink" readonly>
+                    <button class="copy-btn" id="copyLink">📋</button>
+                </div>
+                <p class="share-note">
+                    Твои друзья смогут видеть только твой календарь,
+                    без личных данных (если ты анонимный)
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Session Modal -->
+    <div class="modal" id="sessionModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="sessionModalTitle">Добавить сессию</h2>
+                <button class="close-btn" id="closeSession">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="session-date">
+                    <strong id="sessionDate"></strong>
+                </div>
+                <div class="session-types">
+                    <div class="session-type" data-type="full">
+                        <div class="session-icon">💦</div>
+                        <div class="session-name">Кончил</div>
+                        <div class="session-desc">Полная сессия до конца</div>
+                    </div>
+                    <div class="session-type" data-type="edge">
+                        <div class="session-icon">🌊</div>
+                        <div class="session-name">На грани</div>
+                        <div class="session-desc">Почти кончил, но остановился</div>
+                    </div>
+                    <div class="session-type" data-type="half">
+                        <div class="session-icon">💧</div>
+                        <div class="session-name">Не до конца</div>
+                        <div class="session-desc">Дрочил, но не кончил</div>
+                    </div>
+                    <div class="session-type" data-type="peek">
+                        <div class="session-icon">👀</div>
+                        <div class="session-name">Только смотрел</div>
+                        <div class="session-desc">Просто посмотрел контент</div>
+                    </div>
+                </div>
+                <div class="current-sessions" id="currentSessions"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
